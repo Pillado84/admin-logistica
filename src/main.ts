@@ -8,6 +8,8 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import 'bootstrap-icons/font/bootstrap-icons.css'
 
+import VueApexCharts from "vue3-apexcharts"
+
 const app = createApp(App)
 
 app.use(router)
