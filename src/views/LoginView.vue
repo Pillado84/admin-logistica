@@ -102,105 +102,64 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router' 
+import { loginUserService, registerUserService } from '@/services/authService' 
+import { rolesUsersService } from '@/services/enums'
 import axios, { AxiosError } from 'axios'
 
-function isAxiosError(error: unknown): error is AxiosError { return axios.isAxiosError(error) }
+function isAxiosError(error: unknown): error is AxiosError { return axios.isAxiosError(error) } 
 
-type BackendError = { message: string }
+type BackendError = { message: string } 
 
-const router = useRouter()
+const router = useRouter() 
+const activeTab = ref('login') 
+const login = ref({ username: '', password: '' }) 
+const register = ref({ username: '', password: '', nombre: '', apellidos: '', email: '', rol: '', activo: true }) 
+const roles = ref<string[]>([]) 
 
-// Tabs
-const activeTab = ref('login')
+onMounted(async () => { 
+  const res = await rolesUsersService() 
+  roles.value = res.data }) 
+  
+// LOGIN 
+const loginUser = async () => { 
+  try { 
+    const res = await loginUserService(login.value) 
+    localStorage.setItem('token', res.data.token) 
+    router.push('/') 
+  } catch (err: unknown) { 
+    console.log('Error al iniciar sesión')
+    console.log(err)
+  } 
+} 
 
-// Datos login
-const login = ref({
-  username: '',
-  password: ''
-})
-
-// Datos registro
-const register = ref({
-  username: '',
-  password: '',
-  nombre: '',
-  apellidos: '',
-  email: '',
-  rol: '',
-  activo: true
-})
-
-// Lista de roles obtenidos del backend
-const roles = ref<string[]>([])
-
-// Cargar roles desde el backend
-onMounted(async () => {
-  try {
-    const res = await axios.get('http://localhost:8080/api/v1/enums/roles-usuarios')
-    roles.value = res.data
-    console.log("Roles recibidos:", res.data)  // ← Aquí tu console.log
-  } catch (err) {
-    // console.error("Error cargando roles:", err)
-  }
-})
-
-// LOGIN
-const loginUser = async () => {
-  try {
-    const res = await axios.post('/auth/login', login.value)
-    localStorage.setItem('token', res.data.token)
-    router.push('/')
-  } catch (err) {
-    alert('Error al iniciar sesión')
-  }
-}
-
-// REGISTRO
-const registerUser = async () => {
-  try {
-    await axios.post('http://localhost:8080/api/v1/usuarios', register.value)
+// REGISTRO 
+const registerUser = async () => { 
+  try { 
+    await registerUserService(register.value) 
     
-    // Login automático
-    const loginResponse = await axios.post('http://localhost:8080/api/v1/auth/login', { username: register.value.username, password: register.value.password }) 
+    // Login automático 
+    const loginResponse = await loginUserService({ 
+      username: register.value.username, 
+      password: register.value.password 
+    }) 
     
-    // Guardar token (según tu backend)
-    localStorage.setItem('token', loginResponse.data.token)
+    localStorage.setItem('token', loginResponse.data.token) 
     
-    // Redirigir al dashboard 
-    window.location.href = '/'
-  } catch (err) {
-    console.log("Error al crear usuario")
-    
-    if (isAxiosError(err)) {
+    router.push('/') 
+  } catch (err: unknown) { 
+    if (isAxiosError(err)) { 
       const status = err.response?.status 
       const data = err.response?.data as BackendError | undefined 
-      switch (status) {
-        case 400:
-          console.log("Solicitud inválida:", data?.message)
-          break 
-        case 401: 
-          console.log("No autorizado:", data?.message) 
-          break 
-        case 403: 
-          console.log("Acceso prohibido:", data?.message) 
-          break 
-        case 404: 
-          console.log("Recurso no encontrado:", data?.message) 
-          break 
+      
+      switch (status) { 
         case 409: 
           console.log("Conflicto:", data?.message) 
           break 
-        case 500: 
-          console.log("Error interno del servidor:", data?.message) 
-          break 
         default: 
-          console.log("Error inesperado:", data?.message)
-          break 
+          console.log("Error:", data?.message) 
       } 
-    } else { 
-      console.log("Error inesperado:", err) 
-    }
-  }
-}
+    } 
+  } 
+} 
 </script>

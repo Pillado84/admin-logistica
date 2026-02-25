@@ -1,20 +1,6 @@
-import axios from 'axios'
+import { api } from './api' 
+import type { LoginRequest, RegisterRequest } from './types.ts'
 
-export interface LoginRequest {
-  username: string
-  password: string
-}
+export const loginUserService = (data: LoginRequest) => api.post('/auth/login', data)
 
-export interface RegisterRequest {
-  username: string
-  email: string
-  password: string
-}
-
-export const loginUserService = async (data: LoginRequest) => {
-  return axios.post('/auth/login', data)
-}
-
-export const registerUserService = async (data: RegisterRequest) => {
-  return axios.post('http://localhost:8080/api/v1/usuarios', data)
-}
+export const registerUserService = (data: RegisterRequest) => api.post('/usuarios', data)
