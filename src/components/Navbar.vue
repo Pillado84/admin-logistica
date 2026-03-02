@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { JwtPayload } from "jwt-decode" 
+const props = defineProps<{ user: JwtPayload | null }>()
+console.log(props.user?.sub)
 </script>
 
 <template>
@@ -75,7 +78,7 @@
             </a>
           </li>
 
-          <li class="nav-item dropdown">
+          <li class="nav-item dropdown position-relative">
             <a
               class="nav-link dropdown-toggle d-flex align-items-center"
               href="#"
@@ -83,10 +86,10 @@
               data-bs-toggle="dropdown"
             >
               <i class="bi bi-person-circle fs-5 me-2"></i>
-              Admin
+              {{ props.user?.sub || "Usuario" }}
             </a>
 
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end position-absolute end-0">
               <li>
                 <a class="dropdown-item" href="#">
                   <i class="bi bi-gear me-2"></i> Configuración

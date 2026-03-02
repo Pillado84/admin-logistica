@@ -1,25 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue' 
-import { useRouter } from 'vue-router'
 import DashboardChart from "../components/DashboardChart.vue"
-import { isTokenExpired, getUserFromToken } from '@/utils/auth'
-
-onMounted(() => {
-  const router = useRouter() 
-  if (isTokenExpired()) { 
-    localStorage.removeItem("token")
-    router.push('/login')
-    return 
-  } 
-  const user = getUserFromToken()
-  if (!user || !("exp" in user)) { 
-    router.push('/login') 
-    return 
-  }
-  console.log("Usuario actual:", user)
-  const expirationDate = new Date((user?.exp ?? 0) * 1000)
-  console.log("Fecha de expiración:", expirationDate.toLocaleString())
-})
 </script>
 
 <template>

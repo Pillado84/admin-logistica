@@ -9,7 +9,7 @@
     <Sidebar />
 
     <div class="flex-grow-1 d-flex flex-column">
-      <Navbar />
+      <Navbar :user="user" />
 
       <main class="p-3 p-md-4">
         <RouterView />
@@ -19,13 +19,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { isTokenExpired, getUserFromToken } from '@/utils/auth'
+import type { JwtPayload } from "jwt-decode"
 import Sidebar from './components/Sidebar.vue'
 import Navbar from './components/Navbar.vue'
+
+const userFromToken = getUserFromToken()
+const user = ref<JwtPayload | null>(null)
+if (userFromToken && "exp" in userFromToken) {
+  user.value = userFromToken
+}
 
 // Comprobación simple basada en localStorage
 const isAuthenticated = computed(() => {
   return !!localStorage.getItem('token')
+})
+
+onMounted(() => {
+  const router = useRouter() 
+  if (isTokenExpired()) { 
+    localStorage.removeItem("token")
+    router.push('/login')
+    return 
+  }
+
+  const userFromToken = getUserFromToken()
+  if (!userFromToken || !("exp" in userFromToken)) { 
+    router.push('/login') 
+    return 
+  }
+  
+
+  console.log("Usuario actual:", user.value)
+  const expirationDate = new Date((user.value?.exp ?? 0) * 1000)
+  console.log("Fecha de expiración:", expirationDate.toLocaleString())
 })
 </script>
 
